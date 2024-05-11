@@ -14,7 +14,7 @@ D_CONTACT = 5.0
 D_CONTACT_QUERY = 5.0
 RCSB_PATH='http://www.rcsb.org/pdb/files/%s.pdb'
 
-SITE_DB_HOME = '/home/j2ho/projeects/GalaxySite2/Site2/site_db'
+SITE_DB_HOME = '/home/j2ho/projects/GalaxySite2/Site2/site_db'
 
 label_to_auth = {} 
 with open(f'{SITE_DB_HOME}/chain.list','r') as f: 
