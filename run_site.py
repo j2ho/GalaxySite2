@@ -5,6 +5,7 @@ import sys
 os.environ['GALAXY_HOME']='/home/j2ho/Galaxy'
 os.environ['GALAXY_PIPE_HOME']='/home/j2ho/GalaxyPipe'
 import Galaxy
+import Site2 
 
 def site():
     opt = Galaxy.core.ArgumentParser\
@@ -51,7 +52,7 @@ def site():
     job = Galaxy.initialize(title=title)
     #
     # GalaxySite
-    out_f_s = Galaxy.Site2.run(job, fa_fn=None, pdb_fn=pdb_fn, lig_fn=fn.lig_fn,\
+    out_f_s = Site2.run(job, fa_fn=None, pdb_fn=pdb_fn, lig_fn=fn.lig_fn,\
                               search_method=fn.search_method,\
                               run_dock=fn.run_dock, fptype=fn.fptype, simtype=fn.simtype, benchmark=fn.benchmark)
     #
