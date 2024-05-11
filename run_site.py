@@ -56,12 +56,6 @@ def site():
                               search_method=fn.search_method,\
                               run_dock=fn.run_dock, fptype=fn.fptype, simtype=fn.simtype, benchmark=fn.benchmark)
     #
-    # Report
-#    job.mkdir("result")
-#    os.system('cp %s .'%job.pdb_fn)
-#    for key in out_f_s:
-#        os.system('cp %s .'%out_f_s[key])
-#    job.chdir()
 
 if __name__=='__main__':
     site()
