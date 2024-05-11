@@ -7,7 +7,6 @@ import numpy as np
 import gzip
 import Galaxy
 import libGalaxy
-from libGalaxy import DB_PDB_HOME
 from Galaxy.core import Template
 from Galaxy.utils import get_mmcif
 
@@ -43,7 +42,8 @@ class SiteTemplate:
         #
         self.max_contact_lig = ''
         idx = self.pdb_id[1:3]
-        self.org_pdb_fn = Galaxy.core.FilePath('%s/%s/pdb%s.ent'%(DB_PDB_HOME, idx.lower(), self.pdb_id.lower()))
+        lower_id = self.pdb_id.lower()
+        self.org_pdb_fn = Galaxy.core.FilePath('%s.pdb'%lower_id)
         self.pdb_fn_lig= {}
         self.lig_cntr = {}
     def __repr__(self):
@@ -79,7 +79,6 @@ class SiteTemplate:
                 n_contact.append((count, key))
         n_contact.sort(reverse=True)
         #
-        #print (n_contact)
         self.contact_ligs = n_contact
         if len(n_contact) == 0:
             self.is_valid=False
@@ -110,19 +109,15 @@ class SiteTemplate:
             self.is_valid = False
     def get_lig_cntr(self, templ_home, lig_name):
         new_pdb_fn = Galaxy.core.FilePath('%s/%s_%s_%s.pdb'%(templ_home, self.pdb_id, self.chain_id, lig_name.strip()))
-#        model = Galaxy.core.PDB(self.pdb_fn)[0]
         model = Galaxy.core.PDB(new_pdb_fn)[0]
         Rs = []
         for residue in model.get_residues():
             if residue.isAtom(): continue
             key = '%s_%s_%d'%(residue.resName(), residue.chainID(), residue.resNo())
-            #if key == self.max_contact_lig:
             if key == lig_name:
                 Rs.append(residue._R)
                 #Rl_s = residue._R
                 break
-        #self.lig_cntr[lig_name.strip()] = center(Rl_s)
-        #print (lig_name, Rs) 
         coords = np.array(Rs)
         cntr = (np.mean(coords, axis=1))
         return cntr[0]
@@ -135,16 +130,15 @@ class SiteTemplate:
         if os.path.exists(self.pdb_fn):
             os.system('rm %s'%self.pdb_fn)
     def write(self, templ_home):
+        lower_id = self.pdb_id.lower()
+        os.system("wget -q -c %s"%(RCSB_PATH%lower_id))
+        self.org_pdb_fn = Galaxy.core.FilePath('%s.pdb'%lower_id)
         if not self.org_pdb_fn.status():
-            lower_id = self.pdb_id.lower()
-            os.system("wget -q -c %s"%(RCSB_PATH%lower_id))
-            self.org_pdb_fn = Galaxy.core.FilePath('%s.pdb'%lower_id)
+            get_mmcif(lower_id, self.chain_id)
+            self.chain_id = self.chain_id[-1]
             if not self.org_pdb_fn.status():
-                get_mmcif(lower_id, self.chain_id)
-                self.chain_id = self.chain_id[-1]
-                if not self.org_pdb_fn.status():
-                    self.is_valid = False
-                    return
+                self.is_valid = False
+                return
         #
         wrt = []
         check_bb = False
@@ -166,6 +160,7 @@ class SiteTemplate:
         fout = open('%s'%self.pdb_fn, 'wt')
         fout.writelines(wrt)
         fout.close()
+        os.system('rm %s'%self.org_pdb_fn)
     def rewrite(self, templ_home, lig_name):
         model = Galaxy.core.PDB(self.pdb_fn)[0]
         model.tr(self.tm.tr[0], self.tm.tr[1])
@@ -324,12 +319,6 @@ def search_site_template(job, pdb_fn, fa_fn, search_metal=False, search_method='
     n_proc = Galaxy.core.define_n_proc(n_proc, multi_node = False)
     out_f_s = {'site.templ_s': Galaxy.core.FilePath('%s.templ_id_s'%job.title)}
     #
-    if libGalaxy.BENCHMARK_MODE != 'None':
-        exclude_pdb_blast = Galaxy.tools.fr.libfr_utils.get_exclude_pdb(job, fa_fn, n_proc=n_proc)
-        for pdb in exclude_pdb_blast:
-            if pdb not in exclude_pdb:
-                exclude_pdb.append(pdb)
-    # 
     if search_method == 'seq':
         templ_s = mmseq_search(job, exclude_pdb, n_proc, re_run, benchmark)
 

@@ -3,8 +3,6 @@
 import sys
 import os
 import Galaxy
-import libGalaxy
-from libGalaxy import SITE_DB_HH_PDB70_HOME, DB_PDB_HOME, SITE_DB_HOME
 from .prep import prepare_lig_mol2
 from .site import extract_rsr, Ligand
 from .libfr_site import SiteTemplate 
