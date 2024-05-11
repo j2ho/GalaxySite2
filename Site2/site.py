@@ -36,10 +36,11 @@ class Ligand:
         self.n_lig = 0
         self.score = 0.0
         self.selected = False
-        #
+        
     def append_templ(self, templ):
         self.templ_s.append(templ)
-        self.n_lig += 1
+        self.n_lig += 0
+        
     def get_score(self, query_lig_fn=None, fptype=None, simtype=None):
         self.templ_score_s = [] 
         for templ in self.templ_s:
@@ -52,9 +53,11 @@ class Ligand:
             elif query_lig_fn is None: 
                 templ_score_v2 = -1.0
             self.templ_score_s.append([templ,float(templ_score),float(templ_score_v2)])
+
     def read_info(self, line):
         x = line.strip().split()
         self.score = float(x[2])
+
     def read_templ(self, pdb, line, templ_home):
         x = line.strip().split()
         ligand_s = [self.lig_name]
@@ -90,9 +93,6 @@ def calculate_similarity(temp_lig_name, query_lig, fptype='FP2', simtype='tani')
             tan=ln.split()[-1]
     return float(tan)
 
-def sort_by_score(data1, data2):
-    #return cmp(data1.score, data2.score)
-    return (data1.score > data2.score) - (data1.score < data2.score)
 
 def select_ligand(job, pdb, re_run=False, **kwargs):
     out_f_s = {'Site.selected_lig.dat': Galaxy.core.FilePath('%s.selected_lig.dat'%job.title)}
@@ -107,10 +107,6 @@ def select_ligand(job, pdb, re_run=False, **kwargs):
         ligand_s = read_selected_lig(out_f_s['Site.selected_lig.dat'], pdb, job['SITE_templ_HOME'])
         return ligand_s
     #
-    if 'search_metal' in kwargs:
-        search_metal = kwargs['search_metal']
-    else:
-        search_metal = False
     #
     if 'search_method' in kwargs:
         search_method = kwargs['search_method'] 
@@ -120,10 +116,8 @@ def select_ligand(job, pdb, re_run=False, **kwargs):
     fptype = kwargs['fptype']
     simtype = kwargs['simtype']
     #
-    #job.mkdir('site_fr')
-    templ_s = search_site_template(job, pdb.pdb_fn, job.fa_fn, search_metal=search_metal, search_method=search_method,
+    templ_s = search_site_template(job, pdb.pdb_fn, job.fa_fn, search_method=search_method,
                                    re_run=re_run, benchmark=benchmark)
-    #job.chdir()
     #
     if len(templ_s) == 0:
         sys.stdout.write('INFO: There is no template to detect binding site. Terminate.\n')
@@ -160,13 +154,10 @@ def select_ligand(job, pdb, re_run=False, **kwargs):
         templ.write(job['SITE_templ_HOME'])
         if not templ.is_valid:
             continue
-        #tm1 = time.time()
         tm = Galaxy.utils.TM_align(templ.pdb_fn, pdb.pdb_fn)
         templ.tm = tm
         if len(templ.tm.tr) == 0: 
             templ.is_valid = False
-        #tm2 = time.time()
-        #totaltm += tm2-tm1
         for lig_name in templ.ligand_s:
             if lig_name in ligName_list:
                 done = False

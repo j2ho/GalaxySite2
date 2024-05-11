@@ -213,7 +213,7 @@ def center(R_s):
     return cntr
 
 
-def read_site_db(search_metal=False):
+def read_site_db():
     DB_path = '%s/ligands.240510'%SITE_DB_HOME
     lines = open(DB_path).readlines()
     #
@@ -314,7 +314,7 @@ def mmseq_search(job, exclude_pdb, n_proc, re_run, benchmark=None):
     
     return templ_s
 
-def search_site_template(job, pdb_fn, fa_fn, search_metal=False, search_method='seq',\
+def search_site_template(job, pdb_fn, fa_fn, search_method='seq',\
                          exclude_pdb=[], n_proc=None, re_run=False, benchmark=False):
     n_proc = Galaxy.core.define_n_proc(n_proc, multi_node = False)
     out_f_s = {'site.templ_s': Galaxy.core.FilePath('%s.templ_id_s'%job.title)}
@@ -330,7 +330,7 @@ def search_site_template(job, pdb_fn, fa_fn, search_metal=False, search_method='
     else:
         sys.stdout.write('ERROR: wrong search method : str or seq allowed %s given.\n'%search_method)
     #
-    db = read_site_db(search_metal=search_metal)
+    db = read_site_db()
     #
     filtered = []
     done = []
