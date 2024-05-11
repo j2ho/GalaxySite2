@@ -1,4 +1,4 @@
-### Not a stand-alone tool YET 
+### Not a stand-alone tool  
 1. needs Galaxy, GalaxyPipe
 2. needs openbabel (see "# OpenBabel path" in Site2/site.py)
 3. need to set site_db path in "libfr_site.py"
