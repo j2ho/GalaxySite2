@@ -4,9 +4,7 @@ import os
 import sys
 os.environ['GALAXY_HOME']='/home/j2ho/Galaxy'
 os.environ['GALAXY_PIPE_HOME']='/home/j2ho/GalaxyPipe'
-sys.path.insert(0, '%s/lib'%'/home/j2ho/GalaxyPipe')
 import Galaxy
-import libGalaxy
 
 def site():
     opt = Galaxy.core.ArgumentParser\
