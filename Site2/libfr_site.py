@@ -17,14 +17,6 @@ RCSB_PATH='http://www.rcsb.org/pdb/files/%s.pdb'
 
 SITE_DB_HOME = 'site_db'
 
-clusters = {} 
-with open('/home/j2ho/DB/uni_pdb_map/uni_to_pdb_chain.csv','r') as f: 
-    lines = f.readlines()
-for i, ln in enumerate(lines):
-    pdbs = ln.strip().split(',')[1].split(';')
-    for elem in pdbs: 
-        clusters[elem] = i
-
 label_to_auth = {} 
 with open(f'{SITE_DB_HOME}/chain.list','r') as f: 
     lines = f.readlines()
@@ -166,15 +158,6 @@ class SiteTemplate:
                 if (residue.chainID() == self.chain_id) or (residue.chainID() == ' '):
                     wrt.append('%s'%residue)
                     check_bb = True
-#        for ln in open('%s'%self.org_pdb_fn).readlines():
-#            if ln.startswith('HETATM'):
-#                wrt.append(ln)
-#            if ln.startswith('ATOM'):
-#                if ln[21] == self.chain_id:
-#                    wrt.append(ln)
-#                    check_bb=True
-#            if ln.startswith('ENDMDL'):
-#                break
         if not check_bb:
             self.is_valid = False
             return
@@ -215,16 +198,12 @@ class SiteTemplate:
                            a[i]='%s%s'%(a[i][:66],a[i][66+todel:])
                    a='\n'.join(a)
                    wrt.append('%s'%a)
-#                   wrt.append('%s'%residue.write_full().replace("'",' '))
-        #
-        #self.pdb_fn_lig[lig_name] = Galaxy.core.FilePath('%s/%s_%s_%s.pdb'%(templ_home, self.pdb_id, self.chain_id, lig_name))
-        #fout = open('%s'%self.pdb_fn_lig[lig_name], 'wt')
-        #self.pdb_fn = Galaxy.core.FilePath('%s/%s_%s_%s.pdb'%(templ_home, self.pdb_id, self.chain_id, lig_name.strip()))
         new_pdb_fn = Galaxy.core.FilePath('%s/%s_%s_%s.pdb'%(templ_home, self.pdb_id, self.chain_id, lig_name.strip()))
         fout = open('%s'%new_pdb_fn, 'wt')
         fout.writelines(wrt)
         fout.close()
         #
+
 
 def center(R_s):
     cntr = [0.0, 0.0, 0.0]
@@ -238,6 +217,7 @@ def center(R_s):
     cntr = np.array(cntr)
     return cntr
 
+
 def read_site_db(search_metal=False):
     DB_path = '%s/ligands.240510'%SITE_DB_HOME
     lines = open(DB_path).readlines()
@@ -247,23 +227,10 @@ def read_site_db(search_metal=False):
         x = line.strip().split()
         pdb_id = x[0]
         templ = SiteTemplate(pdb_id, x[2].split(','))
-        #templ.clu = int(x[1])
         templ.clu = x[1]
-        if pdb_id in clusters: 
-            templ.clu = clusters[pdb_id] # same uniprot id = same cluster 
-        else: 
-            templ.clu = '' # if has no uniprot entry, no cluster assigned.. 
         db[pdb_id] = templ
-        #try:
-        #    templ.resol = float(x[2])
-        #except:
-        #    templ.resol = -1*100
     return db
 
-
-def _run_tm(inp):
-    tm = Galaxy.utils.TM_align(inp[0],inp[1])
-    return tm
 
 def checkyear(pdbid): 
     mmciffile = f'/store/AlphaFold/pdb_mmcif/mmcif_files/{pdbid}.cif'
@@ -382,11 +349,6 @@ def search_site_template(job, pdb_fn, fa_fn, search_metal=False, search_method='
         pdb_id = templ.pdb_id
         if pdb_id not in db: 
             continue
-        #if templ.pdb_id not in clu:
-        #    continue
-        #for pdb_id in clu[templ.pdb_id]:
-        #    if pdb_id not in db:
-        #        continue
         if pdb_id in done:
             continue
         done.append(pdb_id)
