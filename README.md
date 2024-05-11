@@ -2,6 +2,7 @@
 1. needs Galaxy, GalaxyPipe
 2. needs openbabel (see "# OpenBabel path" in Site2/site.py)
 3. need to set site_db path in "libfr_site.py"
+   e.g.) 
 ```bash
 SITE_DB_HOME = '/home/j2ho/projects/GalaxySite2/Site2/site_db'
 ```
