@@ -7,7 +7,7 @@ import numpy as np
 import gzip
 import Galaxy
 import libGalaxy
-from libGalaxy import SITE_DB_HH_PDB70_HOME, DB_PDB_HOME, SITE_DB_HOME
+from libGalaxy import DB_PDB_HOME
 from Galaxy.core import Template
 from Galaxy.utils import get_mmcif
 
@@ -15,7 +15,8 @@ D_CONTACT = 5.0
 D_CONTACT_QUERY = 5.0
 RCSB_PATH='http://www.rcsb.org/pdb/files/%s.pdb'
 
-###delete later###
+SITE_DB_HOME = 'site_db'
+
 clusters = {} 
 with open('/home/j2ho/DB/uni_pdb_map/uni_to_pdb_chain.csv','r') as f: 
     lines = f.readlines()
@@ -264,65 +265,6 @@ def _run_tm(inp):
     tm = Galaxy.utils.TM_align(inp[0],inp[1])
     return tm
 
-def str_based_search(pdb_fn, exclude_pdb, n_proc, re_run):
-    log = 'str_search.log'
-    if not re_run:
-        if os.path.exists(log):
-            lines = open(log).readlines()
-            if len(lines) == 30:
-                templ_s = Galaxy.core.TemplateList(None)
-                for ln in lines:
-                    ln=ln.split()
-                    templ = Template(ln[0], [1,100], [1,100])
-                    templ.score = float(ln[1])
-                    templ_s.append(templ)
-                return templ_s
-
-    import glob
-    listup = glob.glob('%s/pdb/*'%SITE_DB_HH_PDB70_HOME)
-    if len(exclude_pdb) != 0:   
-        sys.stdout.write("INFO: Following PDB entries are excluded: %s\n"%(" ".join(exclude_pdb)))
-        pdb_s = []
-        for pdb_path in listup:
-            pdb_id=pdb_path.split('/')[-1].split('_')[0]
-            if pdb_id in exclude_pdb:
-                continue
-            if pdb_id.lower() in exclude_pdb:
-                continue
-            pdb_s.append(pdb_path)
-        listup = pdb_s
-    for i, inp in enumerate(listup):
-        listup[i] = [pdb_fn, inp]
-    #
-    import multiprocessing as mp
-    if n_proc > mp.cpu_count(): 
-        n_proc = mp.cpu_count()
-    pool = mp.Pool(processes=n_proc)
-    tm_s = pool.map(_run_tm, listup)
-    #
-    tm_result = []
-    for i, pdb_path in enumerate(listup):
-        pdb_path = pdb_path[1]
-        pdb_id = pdb_path.split('/')[-1].split('.')[0]
-        tmp = tm_s[i].tm * tm_s[i].occ
-        #tm_result.append((pdb_id,tm_s[i].tm,tm_s[i]))
-        tm_result.append((pdb_id, tmp, tm_s[i]))
-    tm_result.sort(key=lambda x:x[1], reverse=True) 
-    tm_result = tm_result[:30]
-    #
-    fout=open('str_search.log','wt')
-    templ_s = Galaxy.core.TemplateList(None)
-    for result in tm_result:
-        pdb_id = result[0]
-        templ = Template(pdb_id, [1,100], [1,100])
-        templ.score = result[1]
-        templ.tm = result[2]
-        templ_s.append(templ)
-        fout.write('%s %f %f %f\n'%(pdb_id,result[1],result[2].tm,result[2].occ))
-        #fout.write('%s %f %f %f\n'%(pdb_id,result[1]))
-    fout.close()
-    return templ_s
-
 def checkyear(pdbid): 
     mmciffile = f'/store/AlphaFold/pdb_mmcif/mmcif_files/{pdbid}.cif'
     if not os.path.exists(mmciffile): 
@@ -410,9 +352,8 @@ def mmseq_search(job, exclude_pdb, n_proc, re_run, benchmark=None):
     
     return templ_s
 
-def search_site_template(job, pdb_fn, fa_fn, method='HHsuite', search_metal=False, search_method='seq',\
+def search_site_template(job, pdb_fn, fa_fn, search_metal=False, search_method='seq',\
                          exclude_pdb=[], n_proc=None, re_run=False, benchmark=False):
-    template_HOME_s = [job['HOME'], Galaxy.core.FilePath('%s/pdb'%SITE_DB_HH_PDB70_HOME)]
     n_proc = Galaxy.core.define_n_proc(n_proc, multi_node = False)
     out_f_s = {'site.templ_s': Galaxy.core.FilePath('%s.templ_id_s'%job.title)}
     #
@@ -424,9 +365,6 @@ def search_site_template(job, pdb_fn, fa_fn, method='HHsuite', search_metal=Fals
     # 
     if search_method == 'seq':
         templ_s = mmseq_search(job, exclude_pdb, n_proc, re_run, benchmark)
-
-    elif search_method == 'str':
-        templ_s = str_based_search(pdb_fn, exclude_pdb, n_proc, re_run)
 
     elif search_method == 'foldseek':
         t1 = time.time()

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# modified 2021.08 sohee
+# modified 2024 by jiho 
 
 import sys
 import os
@@ -12,7 +12,6 @@ import libGalaxy
 from libGalaxy import SITE_DB_HOME
 from .libfr_site import SiteTemplate, search_site_template
 from Galaxy.utils.libtm import TM_result
-#cmp not supported in python3 / functools.cmp_to_key used 
 import functools
 import subprocess
 import numpy as np
