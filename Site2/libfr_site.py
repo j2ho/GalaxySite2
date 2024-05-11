@@ -45,9 +45,11 @@ class SiteTemplate:
         lower_id = self.pdb_id.lower()
         self.org_pdb_fn = Galaxy.core.FilePath('%s.pdb'%lower_id)
         self.pdb_fn_lig= {}
-        self.lig_cntr = {}
+        self.lig_cntr = {0}
+
     def __repr__(self):
         return f'{self.pdb_id}_{self.chain_id}'
+
     def get_max_contact_lig(self, lig_name=''):
         from Galaxy.core.vector import distance
         model = Galaxy.core.PDB(self.pdb_fn)[0]
@@ -86,6 +88,7 @@ class SiteTemplate:
             self.max_contact_lig = n_contact[0][1]
             self.lig_cntr = center(Rl_s[self.max_contact_lig])
             self.is_valid = True
+
     def check_position(self, pdb):
         from Galaxy.core.vector import distance
         model = Galaxy.core.PDB(self.pdb_fn)[0]
@@ -107,6 +110,7 @@ class SiteTemplate:
                         count += 1
         if count == 0:
             self.is_valid = False
+
     def get_lig_cntr(self, templ_home, lig_name):
         new_pdb_fn = Galaxy.core.FilePath('%s/%s_%s_%s.pdb'%(templ_home, self.pdb_id, self.chain_id, lig_name.strip()))
         model = Galaxy.core.PDB(new_pdb_fn)[0]
@@ -121,14 +125,17 @@ class SiteTemplate:
         coords = np.array(Rs)
         cntr = (np.mean(coords, axis=1))
         return cntr[0]
+
     def tr_lig_cntr(self):
         T = self.tm.tr[0]
         R = self.tm.tr[1]
         self.lig_cntr = R.dot(self.lig_cntr) + T
+
     def remove(self, templ_home): 
         self.pdb_fn = '%s/%s_%s.pdb'%(templ_home, self.pdb_id, self.chain_id)
         if os.path.exists(self.pdb_fn):
             os.system('rm %s'%self.pdb_fn)
+
     def write(self, templ_home):
         lower_id = self.pdb_id.lower()
         os.system("wget -q -c %s"%(RCSB_PATH%lower_id))
@@ -161,6 +168,7 @@ class SiteTemplate:
         fout.writelines(wrt)
         fout.close()
         os.system('rm %s'%self.org_pdb_fn)
+
     def rewrite(self, templ_home, lig_name):
         model = Galaxy.core.PDB(self.pdb_fn)[0]
         model.tr(self.tm.tr[0], self.tm.tr[1])
@@ -197,8 +205,7 @@ class SiteTemplate:
         fout = open('%s'%new_pdb_fn, 'wt')
         fout.writelines(wrt)
         fout.close()
-        #
-
+        
 
 def center(R_s):
     cntr = [0.0, 0.0, 0.0]
@@ -236,6 +243,7 @@ def checkyear(pdbid):
             if '_pdbx_database_status.recvd_initial_deposition_date' in ln: 
                 year = ln.split()[1].split('-')[0]
         return int(year)
+
 
 def foldseek_search(pdb_fn, exclude_pdb, n_proc, re_run, benchmark=None):
     templ_s = []
@@ -278,6 +286,7 @@ def foldseek_search(pdb_fn, exclude_pdb, n_proc, re_run, benchmark=None):
         templ_s.append(templ) 
     return templ_s
 
+
 def mmseq_search(job, exclude_pdb, n_proc, re_run, benchmark=None): 
     templ_s = []
     cwd = os.getcwd()
@@ -314,6 +323,7 @@ def mmseq_search(job, exclude_pdb, n_proc, re_run, benchmark=None):
     
     return templ_s
 
+
 def search_site_template(job, pdb_fn, fa_fn, search_method='seq',\
                          exclude_pdb=[], n_proc=None, re_run=False, benchmark=False):
     n_proc = Galaxy.core.define_n_proc(n_proc, multi_node = False)
@@ -349,4 +359,3 @@ def search_site_template(job, pdb_fn, fa_fn, search_method='seq',\
         print (elem, elem.score) 
     filtered.sort(reverse=True, key=lambda templ: (templ.score,templ.resol))
     return filtered
-
