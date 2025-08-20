@@ -4,7 +4,6 @@ import sys
 import os
 import time
 import numpy as np 
-import gzip
 import Galaxy
 import libGalaxy
 from Galaxy.core import Template
@@ -14,7 +13,7 @@ D_CONTACT = 5.0
 D_CONTACT_QUERY = 5.0
 RCSB_PATH='http://www.rcsb.org/pdb/files/%s.pdb'
 
-SITE_DB_HOME = '/home/j2ho/projects/GalaxySite2/Site2/site_db'
+SITE_DB_HOME = '/your/path/to/Site2/site_db'
 
 label_to_auth = {} 
 with open(f'{SITE_DB_HOME}/chain.list','r') as f: 
@@ -24,7 +23,6 @@ for ln in lines:
     x = ln.strip().split()
     label_to_auth[x[0]] = x[1]
 
-###
 
 class SiteTemplate:
     def __init__(self, pdb_id, ligand_s):
@@ -35,13 +33,10 @@ class SiteTemplate:
         self.ligand_nameonly_s = []
         for lig in ligand_s:
             self.ligand_nameonly_s.append(lig.split('_')[0])
-        # 
         self.clu = ''
         self.resol = ''
         self.num_heavy = 0
-        #
         self.max_contact_lig = ''
-        idx = self.pdb_id[1:3]
         lower_id = self.pdb_id.lower()
         self.org_pdb_fn = Galaxy.core.FilePath('%s.pdb'%lower_id)
         self.pdb_fn_lig= {}
@@ -56,10 +51,9 @@ class SiteTemplate:
         Rl_s = {}
         for residue in model.get_residues():
             if residue.isAtom(): continue
-            #if not residue.resName() in self.ligand_s: continue
-            if not residue.resName().strip() in self.ligand_nameonly_s: continue
+            if residue.resName().strip() not in self.ligand_nameonly_s:
+                continue
             if lig_name != '':
-                #if residue.resName() != lig_name:
                 if residue.resName().strip() != lig_name:
                     continue
             key = '%s_%s_%d'%(residue.resName(), residue.chainID(), residue.resNo())
@@ -67,7 +61,6 @@ class SiteTemplate:
         if len(Rl_s) == 0:
             self.is_valid = False
             return
-        #
         n_contact = []
         for key in Rl_s:
             count = 0
@@ -80,7 +73,6 @@ class SiteTemplate:
             if count > 0: 
                 n_contact.append((count, key))
         n_contact.sort(reverse=True)
-        #
         self.contact_ligs = n_contact
         if len(n_contact) == 0:
             self.is_valid=False
@@ -94,12 +86,12 @@ class SiteTemplate:
         model = Galaxy.core.PDB(self.pdb_fn)[0]
         for residue in model.get_residues():
             if residue.isAtom(): continue
-            if not residue.resName().strip() in self.ligand_nameonly_s: continue
+            if residue.resName().strip() not in self.ligand_nameonly_s:
+                continue
             key = '%s_%s_%d'%(residue.resName(), residue.chainID(), residue.resNo())
             if key == self.max_contact_lig:
                 Rl = residue._R
                 break
-        #
         model = pdb[0]
         count = 0
         for R1 in Rl: 
@@ -120,7 +112,6 @@ class SiteTemplate:
             key = '%s_%s_%d'%(residue.resName(), residue.chainID(), residue.resNo())
             if key == lig_name:
                 Rs.append(residue._R)
-                #Rl_s = residue._R
                 break
         coords = np.array(Rs)
         cntr = (np.mean(coords, axis=1))
@@ -146,7 +137,7 @@ class SiteTemplate:
             if not self.org_pdb_fn.status():
                 self.is_valid = False
                 return
-        #
+
         wrt = []
         check_bb = False
         model = Galaxy.core.PDB(self.org_pdb_fn)[0]
@@ -162,7 +153,7 @@ class SiteTemplate:
         if not check_bb:
             self.is_valid = False
             return
-        #
+
         self.pdb_fn = Galaxy.core.FilePath('%s/%s_%s.pdb'%(templ_home, self.pdb_id, self.chain_id))
         fout = open('%s'%self.pdb_fn, 'wt')
         fout.writelines(wrt)
@@ -180,12 +171,9 @@ class SiteTemplate:
                 wrt.append('%s'%residue)
             else:
                 key = '%s_%s_%d'%(residue.resName(), residue.chainID(), residue.resNo())
-                #if key == self.max_contact_lig:
                 if key == lig_name:
-                   #wrt.append('%s'%residue)
                    self.num_heavy = len(residue.get_heavy())
-                   #wrt.append('%s'%residue.write_full())
-                   a=residue.write_full()#.replace("'",'1')
+                   a=residue.write_full()
                    a=a.split('\n')
                    at_list = []
                    for i, ln in enumerate(a):
@@ -223,7 +211,6 @@ def center(R_s):
 def read_site_db():
     DB_path = '%s/ligands.240510'%SITE_DB_HOME
     lines = open(DB_path).readlines()
-    #
     db = {}
     for line in lines:
         x = line.strip().split()
@@ -251,8 +238,7 @@ def foldseek_search(pdb_fn, exclude_pdb, n_proc, re_run, benchmark=None):
     target_dir = os.path.dirname(cwd)
     log = f'{target_dir}/foldseek.log'
     if not os.path.exists(log):
-#        os.system(f'/home/j2ho/bin/foldseek/bin/foldseek easy-search {pdb_fn} /home/j2ho/DB/foldseekDB/foldseekDB {log} {target_dir}/tmp -v 0 -e 0.01 --threads 8')
-        os.system(f'/home/j2ho/bin/foldseek/bin/foldseek easy-search {pdb_fn} /home/j2ho/DB/foldseekDB/foldseekDB {log} {target_dir}/tmp -e 0.1 --threads 8 --max-seqs 5000')
+        os.system(f'/your/path/to/foldseek easy-search {pdb_fn} /home/j2ho/DB/foldseekDB/foldseekDB {log} {target_dir}/tmp -e 0.1 --threads 8 --max-seqs 5000')
     f = open(log, 'r') 
     for ln in f.readlines(): 
         x = ln.strip().split()
@@ -271,36 +257,30 @@ def foldseek_search(pdb_fn, exclude_pdb, n_proc, re_run, benchmark=None):
             pdb_id = f'{pdbid}_{chain[-1]}'
         if pdb_id in label_to_auth: 
             pdb_id = label_to_auth[pdb_id]
-        fident = float(x[2]) 
-        bit = float(x[-1])
         evalue = float(x[-2])
         if evalue == 0: 
             escore = 100000
         else:
             escore = -np.log(evalue) 
-        #if fident > 0.85: 
-        #    continue
         templ = Template(pdb_id, [1,100], [1,100])  
         templ.score = escore
-        #if len(templ_s) < 30: 
         templ_s.append(templ) 
     return templ_s
 
 
-def mmseq_search(job, exclude_pdb, n_proc, re_run, benchmark=None): 
+def mmseq_search(job, benchmark=None): 
     templ_s = []
     cwd = os.getcwd()
     target_dir = os.path.dirname(cwd)
     log = f'{target_dir}/mmseq.log'
-    mmseqs = '/applic/mmseqs2/15-6f452/bin/mmseqs'
+    mmseqs = '/your/path/to/mmseqs'
     if not os.path.exists(log):
-        #os.system(f'mmseqs easy-search {target_dir}/{job.title}/{job.title}.fa /home/j2ho/DB/mmseqs_pdb_db/pdbdb {log} {target_dir}/tmp --threads 8')
-        os.system(f'{mmseqs} easy-search {target_dir}/{job.title}/{job.title}.fa /home/j2ho/DB/mmseqs_pdb_db/pdbdb {log} {target_dir}/tmp -s 9.5 -e 0.1 --threads 8 --max-seqs 5000')
+        os.system(f'{mmseqs} easy-search {target_dir}/{job.title}/{job.title}.fa /your/path/to/pre-created/mmseqs-db {log} {target_dir}/tmp -s 9.5 -e 0.1 --threads 8 --max-seqs 5000')
     f = open(log, 'r')
     for ln in f.readlines(): 
         x = ln.strip().split()
         pdbid = x[1][:4]
-        mmciffile = f'/store/AlphaFold/pdb_mmcif/mmcif_files/{pdbid}.cif'
+        mmciffile = f'/path/to/full/rcsb/database/for/mmcifs/{pdbid}.cif'
         if not os.path.exists(mmciffile): 
             continue
         if not benchmark == None: 
@@ -327,10 +307,8 @@ def mmseq_search(job, exclude_pdb, n_proc, re_run, benchmark=None):
 def search_site_template(job, pdb_fn, fa_fn, search_method='seq',\
                          exclude_pdb=[], n_proc=None, re_run=False, benchmark=False):
     n_proc = Galaxy.core.define_n_proc(n_proc, multi_node = False)
-    out_f_s = {'site.templ_s': Galaxy.core.FilePath('%s.templ_id_s'%job.title)}
-    #
     if search_method == 'seq':
-        templ_s = mmseq_search(job, exclude_pdb, n_proc, re_run, benchmark)
+        templ_s = mmseq_search(job, benchmark)
 
     elif search_method == 'foldseek':
         t1 = time.time()
@@ -339,9 +317,7 @@ def search_site_template(job, pdb_fn, fa_fn, search_method='seq',\
         print (f'foldseek search time: {t2-t1} sec')
     else:
         sys.stdout.write('ERROR: wrong search method : str or seq allowed %s given.\n'%search_method)
-    #
     db = read_site_db()
-    #
     filtered = []
     done = []
     for templ in templ_s:
@@ -354,7 +330,6 @@ def search_site_template(job, pdb_fn, fa_fn, search_method='seq',\
         data = db[pdb_id]
         data.score = templ.score
         filtered.append(data)
-    #
     for elem in filtered: 
         print (elem, elem.score) 
     filtered.sort(reverse=True, key=lambda templ: (templ.score,templ.resol))

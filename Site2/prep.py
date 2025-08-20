@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
-#!/usr/bin/python
-
 import os
 import sys
 import Galaxy
-import libGalaxy
 from libGalaxy import EXEC_OBABEL
 
 import subprocess
@@ -16,7 +13,6 @@ metal_s = ["NA", "MG", "AL", "K", "CA", "MN", "MN3", "FE2", "FE", "CO", "3CO", "
 
 def prepare_lig_mol2(job, ligand, exclude_H=False):
     templ = ligand.templ_s[0]
-#    lig, stat, include_metal = extract_ligand(templ.pdb_fn, templ.max_contact_lig)
     lig, stat = copy_ligand(templ.pdb_fn, templ.max_contact_lig)
     if not stat:
         sys.stdout.write('ERROR: Failed to extract ligand from template PDB.')
@@ -24,18 +20,10 @@ def prepare_lig_mol2(job, ligand, exclude_H=False):
     fout = open('%s.pdb'%ligand.lig_name, 'wt')
     fout.write(lig)
     fout.close()
-    #
-    # Make Mol2
-#    if include_metal and (not exclude_H):
-#        exclude_H = True
-    #
-#    Galaxy.tools.chimera.convert(job, '%s.pdb'%ligand.lig_name, lig_name=ligand.lig_name,\
-#                                 out_format='mol2',re_run=True, report_status=True,\
-#                                 delete_hydrogen=True)
     if (exclude_H):
         Galaxy.tools.babel.run(job, '%s.pdb'%ligand.lig_name, lig_name=ligand.lig_name,\
                                     out_format='mol2', delete_H=exclude_H, re_run=True)
-        #
+
         cmd = '%s -imol2 %s -osmi'%(EXEC_OBABEL,FilePath('%s.mol2'%ligand.lig_name).relpath())
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
         g = '%s'%proc.stdout.read().split()[0]
@@ -45,7 +33,7 @@ def prepare_lig_mol2(job, ligand, exclude_H=False):
     else:
         Galaxy.tools.chimera.DockPrep(job, '%s.mol2'%ligand.lig_name, lig_name=ligand.lig_name,\
                                      out_format='mol2',re_run=True, report_status=True)
-    #
+
     cmd = '%s -imol2 %s -osmi'%(EXEC_OBABEL,FilePath('%s.mol2'%ligand.lig_name).relpath())
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     g = '%s'%proc.stdout.read().split()[0]
@@ -58,23 +46,22 @@ def prepare_lig_mol2(job, ligand, exclude_H=False):
         os.remove('%s.mol2'%ligand.lig_name)
         Galaxy.tools.babel.run(job, '%s.pdb'%ligand.lig_name, lig_name=ligand.lig_name,\
                                out_format='mol2', delete_H=exclude_H, re_run=True)
-    #
+
     return Galaxy.core.FilePath('%s.mol2'%ligand.lig_name)
+
 
 def extract_ligand(pdb_fn, lig_info):
     ligName = lig_info.split('_')[0]
     ligChain = lig_info.split('_')[1]
     ligNo = int(lig_info.split('_')[2])
     if len(ligChain) == 0: ligChain = ' '
-    #
+
     pdb = Galaxy.core.PDB(pdb_fn)[0]
     find = False
     include_metal = False
     for residue in pdb.get_residues(res_range=[ligNo]):
         if residue.isAtom(): continue
         if (residue.chainID() == ligChain) and (residue.resName() == ligName):
-#            wrt = '%s'%residue
-#            wrt = '%s'%residue.write_full()
 
             a=residue.write_full().replace("'",' ')
             a=a.split('\n')
@@ -95,12 +82,13 @@ def extract_ligand(pdb_fn, lig_info):
             break
     return wrt, find, include_metal
 
+
 def copy_ligand(pdb_fn, lig_info):
     ligName = lig_info.split('_')[0]
     ligChain = lig_info.split('_')[1]
     ligNo = int(lig_info.split('_')[2])
     if len(ligChain) == 0: ligChain = ' '
-    #
+
     wrt=''
     find=False
     for ln in open('%s'%pdb_fn).readlines():
@@ -115,5 +103,3 @@ def copy_ligand(pdb_fn, lig_info):
         wrt+=ln
         find = True
     return wrt, find
-
-

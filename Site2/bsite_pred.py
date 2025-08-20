@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
 
-#!/usr/bin/python
-
-import os
-import sys
-import Galaxy
-import libGalaxy
-
 vdw_R={"C":1.7,"A":1.7,"O":1.52,"F":1.47,"CL":1.75,"H":1.20,"N":1.55,"I":1.98,"S":1.80,"P":1.8,\
        "BR":1.85,"MG":1.73,"ZN":1.39,"MN":1.7,"CA":2.31,"NA":2.27,"FE":1.65,"NI":1.63,"CU":1.40,\
        "CO":1.50,"RU":2.0,"SE":1.9}
