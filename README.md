@@ -1,14 +1,22 @@
 ### This is distribution for lab members
-### Not a stand-alone tool. should be ran in seoklab cluster3  
-1. needs Galaxy modules
-2. needs openbabel (see "# OpenBabel path" in Site2/site.py)
-3. need to set site_db path in "libfr_site.py"
-```bash
-SITE_DB_HOME = '/path/to/site_db'
-```
-4. needs Alphafold mmcif pdbs, rcsb pdb DB ... (otherwise will try to download from rcsbpdb using "wget")
-5. There are many custom paths and DBs needed: Full mmcif DB, ligand ideal sdf DB. (ask me if you are a lab member) 
-6. needs foldseek or mmseq (depending on -tsm option / see search functions in Site2/libfr_site.py) installed
+### Not a stand-alone tool. Designed for seoklab cluster3  
+
+
+**Setup Requirements:**
+
+1. **Configure paths in config.py** - Update `Site2/config.py` with your specific paths:
+   - `SITE_DB_HOME`: Path to site database
+   - `SDF_DB`: Path to ligand SDF database
+   - `RCSB_mmcif_DB`: Path to RCSB mmCIF files
+   - `BABEL`: Path to OpenBabel executable
+   - `mmseqs`/`foldseek`: Tool paths and database paths
+
+2. **Dependencies:**
+   - Galaxy and GalaxyPipe packages
+   - OpenBabel
+   - pdb files are downloaded on the fly from RCSB PDB database, mmcif is used for info parsing mainly
+   - Custom databases: Full mmCIF DB, ligand ideal SDF DB (SDF can be downloaded on the fly as well, but directory should be set in `config.py`)
+   - foldseek and/or mmseqs2 (depending on -tsm option)
 
 ### How to run ..
 ```bash
