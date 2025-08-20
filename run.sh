@@ -7,5 +7,4 @@
 #SBATCH -o log
 #SBATCH -e err
 #SBATCH --nice=10000
-cd test
-python3 /home/j2ho/projects/GalaxySite2/run_site.py -p /home/j2ho/projects/casp/sars-cov2-mpro/monomer_af/af_model/ranked_0.pdb -tsm foldseek -t result
+python3 /run_site.py -p target_receptor.pdb -tsm foldseek -t output
