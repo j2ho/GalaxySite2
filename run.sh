@@ -7,4 +7,4 @@
 #SBATCH -o log
 #SBATCH -e err
 #SBATCH --nice=10000
-python3 /run_site.py -p target_receptor.pdb -tsm foldseek -t output
+python3 run_site.py -p target_receptor.pdb -tsm foldseek -t output
