@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Optional, Dict, Any, List, Union
 
 import Galaxy
-import libGalaxy
 from Galaxy.core import FilePath, define_n_proc, file_status
 from . import site
 from .prep import prepare_lig_mol2
@@ -164,7 +163,7 @@ def _process_single_ligand(job, pdb, ligand, re_run: bool) -> None:
     
     opt_s = _get_docking_options(rsr_pdb, rsr_fn)
     
-    optimized, opt_energy = Galaxy.galaxy.ligdock(
+    optimized, _ = Galaxy.galaxy.ligdock(
         job, pdb, mol2_fn_with_h, 
         outfile_prefix=ligand_name,
         lig_name=ligand_name, 

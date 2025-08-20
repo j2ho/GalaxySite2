@@ -7,20 +7,8 @@ import Galaxy
 from Galaxy.utils.libtm import TM_result
 from .libfr_site import SiteTemplate, search_site_template
 from .utils import calculate_similarity
-import subprocess
-import time 
-
-# TM cutoff for template selection
-TM_CUT = 0.2
-
-# ligand type
-type_dict = {1:'lipid',2:'non-biological',3:'ions/metal',4:'glycan',0:'general'}
-
-# OpenBabel path
-BABEL = '/your/path/to/obabel' 
-
-# default FP2
-finger_print = ['-xfFP3', '-xfFP4', '-xfMACCS']
+from .config import SDF_DB, TM_CUT, type_dict, BABEL, finger_print
+import time
 
 
 class Ligand:
@@ -160,16 +148,16 @@ def select_ligand(job, pdb, re_run=False, **kwargs):
     query_lig = lig_fn
     if not query_lig == None: 
         if not len(query_lig.split('.')) > 1:
-            sdf_file = f'/path/to/ligand/sdf/db/{query_lig}.sdf'
+            sdf_file = f'{SDF_DB}/{query_lig}.sdf'
             if not os.path.exists(sdf_file):
                 sdf_link = f'https://files.rcsb.org/ligands/download/{query_lig}_ideal.sdf'
-                os.system(f'wget {sdf_link} -O /path/to/ligand/sdf/db/{query_lig}.sdf') 
+                os.system(f'wget {sdf_link} -O {sdf_file}') 
             query_lig = sdf_file
     for ligand in ligand_s:
-        sdf_file = f'/path/to/ligand/sdf/db/{ligand.lig_name}.sdf'
+        sdf_file = f'{SDF_DB}/{ligand.lig_name}.sdf'
         if not os.path.exists(sdf_file): 
             sdf_link = f'https://files.rcsb.org/ligands/download/{ligand.lig_name}_ideal.sdf'
-            os.system(f'wget {sdf_link} -O /path/to/ligand/sdf/db/{ligand.lig_name}.sdf') 
+            os.system(f'wget {sdf_link} -O {sdf_file}') 
         ligand.get_score(query_lig_fn=query_lig, fptype=fptype)
 
     new_ligand_s = [] 

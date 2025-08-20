@@ -8,12 +8,7 @@ import Galaxy
 import libGalaxy
 from Galaxy.core import Template
 from Galaxy.utils import get_mmcif
-
-D_CONTACT = 5.0
-D_CONTACT_QUERY = 5.0
-RCSB_PATH='http://www.rcsb.org/pdb/files/%s.pdb'
-
-SITE_DB_HOME = '/your/path/to/Site2/site_db'
+from .config import D_CONTACT, D_CONTACT_QUERY, RCSB_PATH, SITE_DB_HOME, mmseqs, mmseqs_db, foldseek, foldseek_db, RCSB_mmcif_DB
 
 label_to_auth = {} 
 with open(f'{SITE_DB_HOME}/chain.list','r') as f: 
@@ -222,7 +217,7 @@ def read_site_db():
 
 
 def checkyear(pdbid): 
-    mmciffile = f'/store/AlphaFold/pdb_mmcif/mmcif_files/{pdbid}.cif'
+    mmciffile = f'{RCSB_mmcif_DB}/{pdbid}.cif'
     if not os.path.exists(mmciffile): 
         return False
     else: 
@@ -238,7 +233,7 @@ def foldseek_search(pdb_fn, exclude_pdb, n_proc, re_run, benchmark=None):
     target_dir = os.path.dirname(cwd)
     log = f'{target_dir}/foldseek.log'
     if not os.path.exists(log):
-        os.system(f'/your/path/to/foldseek easy-search {pdb_fn} /home/j2ho/DB/foldseekDB/foldseekDB {log} {target_dir}/tmp -e 0.1 --threads 8 --max-seqs 5000')
+        os.system(f'{foldseek} easy-search {pdb_fn} {foldseek_db} {log} {target_dir}/tmp -e 0.1 --threads 8 --max-seqs 5000')
     f = open(log, 'r') 
     for ln in f.readlines(): 
         x = ln.strip().split()
@@ -273,9 +268,8 @@ def mmseq_search(job, benchmark=None):
     cwd = os.getcwd()
     target_dir = os.path.dirname(cwd)
     log = f'{target_dir}/mmseq.log'
-    mmseqs = '/your/path/to/mmseqs'
     if not os.path.exists(log):
-        os.system(f'{mmseqs} easy-search {target_dir}/{job.title}/{job.title}.fa /your/path/to/pre-created/mmseqs-db {log} {target_dir}/tmp -s 9.5 -e 0.1 --threads 8 --max-seqs 5000')
+        os.system(f'{mmseqs} easy-search {target_dir}/{job.title}/{job.title}.fa {mmseqs_db} {log} {target_dir}/tmp -s 9.5 -e 0.1 --threads 8 --max-seqs 5000')
     f = open(log, 'r')
     for ln in f.readlines(): 
         x = ln.strip().split()

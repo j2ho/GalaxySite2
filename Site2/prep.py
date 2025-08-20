@@ -2,11 +2,10 @@
 
 import os
 import sys
-import Galaxy
-from libGalaxy import EXEC_OBABEL
-
 import subprocess
+import Galaxy
 from Galaxy.core import FilePath
+from .config import BABEL
 
 metal_s = ["NA", "MG", "AL", "K", "CA", "MN", "MN3", "FE2", "FE", "CO", "3CO", "NI", "3NI",\
            "CU1", "CU", "ZN", "AG", "CD", "PT", "AU", "AU3", "HG"]
@@ -24,7 +23,7 @@ def prepare_lig_mol2(job, ligand, exclude_H=False):
         Galaxy.tools.babel.run(job, '%s.pdb'%ligand.lig_name, lig_name=ligand.lig_name,\
                                     out_format='mol2', delete_H=exclude_H, re_run=True)
 
-        cmd = '%s -imol2 %s -osmi'%(EXEC_OBABEL,FilePath('%s.mol2'%ligand.lig_name).relpath())
+        cmd = '%s -imol2 %s -osmi'%(BABEL,FilePath('%s.mol2'%ligand.lig_name).relpath())
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
         g = '%s'%proc.stdout.read().split()[0]
         if '.' in g:
@@ -34,7 +33,7 @@ def prepare_lig_mol2(job, ligand, exclude_H=False):
         Galaxy.tools.chimera.DockPrep(job, '%s.mol2'%ligand.lig_name, lig_name=ligand.lig_name,\
                                      out_format='mol2',re_run=True, report_status=True)
 
-    cmd = '%s -imol2 %s -osmi'%(EXEC_OBABEL,FilePath('%s.mol2'%ligand.lig_name).relpath())
+    cmd = '%s -imol2 %s -osmi'%(BABEL,FilePath('%s.mol2'%ligand.lig_name).relpath())
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     g = '%s'%proc.stdout.read().split()[0]
     if '.' in g:
